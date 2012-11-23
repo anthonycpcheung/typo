@@ -546,6 +546,17 @@ describe Admin::ContentController do
       end
     end
 
+    describe 'merge action' do
+      it 'should merge articles' do
+        @article_merging = mock_model(Article, :id => 1)
+        @article_merge_with = mock_model(Article, :id => 2)
+        Article.stub(:find).with(@article_merge_with.id).and_return(@article_merge_with)
+        Article.stub(:find).with(@article_merging.id).and_return(@article_merging)
+        @article_merging.should_receive(:merge_with).with(@article_merge_with.id)
+        post :merge, 'id' => @article_merging.id, 'merge_with' => @article_merge_with.id
+      end
+    end
+
     describe 'resource_add action' do
 
       it 'should add resource' do

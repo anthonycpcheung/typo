@@ -1,0 +1,10 @@
+<% if current_user.admin? && action == 'edit'%>
+  <%= form_tag({:action => 'merge', :id => id}, {:id => "merge_form", :enctype => "multipart/form-data" }) do %>
+    <div class=''>
+      <h4><%= _("Merge Articles") %></h4>
+      <%= _("Article ID") %> <%= text_field_tag 'merge_with', '', {:autocomplete => 'off'} %>
+      <br/>
+      <input id='merge' type="submit" value="<%= _('Merge') %>" name="merge" class='btn info' />
+    </div>
+  <% end %>
+<% end %>

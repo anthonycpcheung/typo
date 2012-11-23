@@ -52,6 +52,21 @@ class Admin::ContentController < Admin::BaseController
     redirect_to :action => 'index'
   end
 
+  def merge
+    @record = Article.find(params[:id])
+
+    unless current_user.admin?
+      flash[:error] = _("Error, you are not allowed to perform this action")
+      return(redirect_to :action => 'index')
+    end
+
+    @merge_with_article = Article.find(params[:merge_with])
+    @article = @record.merge_with(@merge_with_article.id)
+
+    set_the_flash
+    redirect_to :action => 'index'
+  end
+
   def insert_editor
     editor = 'visual'
     editor = 'simple' if params[:editor].to_s == 'simple'
@@ -180,6 +195,7 @@ class Admin::ContentController < Admin::BaseController
     @images = Resource.images_by_created_at.page(params[:page]).per(10)
     @resources = Resource.without_images_by_filename
     @macros = TextFilter.macro_filters
+    @orig_action = params[:action]
     render 'new'
   end
 
@@ -189,6 +205,8 @@ class Admin::ContentController < Admin::BaseController
       flash[:notice] = _('Article was successfully created')
     when 'edit'
       flash[:notice] = _('Article was successfully updated.')
+    when 'merge'
+      flash[:notice] = _('Articles were successfully merged.')
     else
       raise "I don't know how to tidy up action: #{params[:action]}"
     end

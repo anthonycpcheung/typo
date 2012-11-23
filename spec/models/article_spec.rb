@@ -630,5 +630,70 @@ describe Article do
     end
 
   end
+
+  describe "#merge" do
+    before do
+      @merging_article = Factory.create(:article, {:title => "Being merged article", :body => "Original Content", :user => Factory.create(:user)})
+
+      @merge_with_article = Factory.create(:article, {:title => "Merged in article", :body => "Merged in Content", :user => Factory.create(:user)})
+      #@merge_with_article.user << Factory.next(:user) 
+    end
+
+    it "should contain the text of both previous articles" do
+      @merging_id = @merging_article.id
+      @merging_body = @merging_article.body
+
+      @merge_with_id = @merge_with_article.id
+      @merge_with_body = @merge_with_article.body
+
+      @merged_article = @merging_article.merge_with(@merge_with_article.id)
+
+      @merged_article.body.should be == @merging_body + @merge_with_body
+
+      @merged_article_in_DB = Article.find(@merging_id)
+      @merged_article_in_DB.body.should be == @merging_body + @merge_with_body
+    end
+    
+    it "should have one author" do
+      @merging_user = @merging_article.user
+
+      @merge_with_user = @merge_with_article.user
+
+      @merged_article = @merging_article.merge_with(@merge_with_article.id)
+      assert_equal(@merged_article.user, @merging_user)
+      assert_not_equal(@merged_article.user, @merge_with_user)
+    end
+
+    it "should have title from either one of the merged articles" do
+      @merging_title = @merging_article.title
+
+      @merge_with_title = @merge_with_article.title
+
+      @merged_article = @merging_article.merge_with(@merge_with_article.id)
+      @merged_article.title.should be == @merging_title
+    end
+
+    it "should have comments from two original articles" do
+      @merging_comment = Factory.create(:comment, :article => @merging_article)
+
+      @merge_with_comment = Factory.create(:comment, :article => @merge_with_article)
+
+      @merged_article = @merging_article.merge_with(@merge_with_article.id)
+      @merged_article.comments.count.should == 2
+      assert(@merged_article.comments.include?(@merging_comment))
+      assert(@merged_article.comments.include?(@merge_with_comment))
+    end
+
+    it "should not find the merge with article any more" do
+      @merge_with_id = @merge_with_article.id
+
+      @merged_article = @merging_article.merge_with(@merge_with_article.id)
+
+      assert_raises ActiveRecord::RecordNotFound do
+        Article.find(@merge_with_id)
+      end
+    end
+
+  end
 end
 
